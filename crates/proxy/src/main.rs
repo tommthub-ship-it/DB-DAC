@@ -1,12 +1,13 @@
+mod mysql;
 mod postgres;
 
 use std::sync::Arc;
 
 use anyhow::Result;
-use audit::{AuditLogger, logger::StdoutSink};
+use audit::{logger::StdoutSink, AuditLogger};
 use policy::PolicyEngine;
 use tracing::info;
-use tracing_subscriber::{EnvFilter, fmt};
+use tracing_subscriber::{fmt, EnvFilter};
 
 pub struct ProxyContext {
     pub policy: Arc<PolicyEngine>,
@@ -15,7 +16,6 @@ pub struct ProxyContext {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // 로그 초기화
     fmt()
         .with_env_filter(EnvFilter::from_default_env().add_directive("info".parse()?))
         .json()
@@ -28,22 +28,40 @@ async fn main() -> Result<()> {
     policy.load_default_rules();
     info!("정책 엔진 초기화 완료 ({} 규칙)", policy.list_rules().len());
 
-    // 감사 로거 초기화
-    let audit = Arc::new(AuditLogger::new().add_sink(StdoutSink));
+    // 감사 로거 초기화 (파일 싱크 추가)
+    let audit_path = std::env::var("AUDIT_LOG_PATH")
+        .unwrap_or_else(|_| "/var/log/ganji-dac/audit.jsonl".to_string());
+
+    let audit = Arc::new(
+        AuditLogger::new()
+            .add_sink(StdoutSink)
+            .add_sink(audit::logger::FileSink::new(&audit_path)),
+    );
 
     let ctx = Arc::new(ProxyContext { policy, audit });
 
-    // PostgreSQL 프록시 시작
+    // ── 프록시 리스너 동시 실행 ─────────────────────────
+
+    // PostgreSQL
     let pg_ctx = ctx.clone();
-    let pg_handle = tokio::spawn(async move {
+    let pg = tokio::spawn(async move {
         if let Err(e) = postgres::run_proxy(pg_ctx, "0.0.0.0:15432").await {
             tracing::error!("PostgreSQL 프록시 오류: {}", e);
         }
     });
 
+    // MySQL
+    let my_ctx = ctx.clone();
+    let my = tokio::spawn(async move {
+        if let Err(e) = mysql::run_proxy(my_ctx, "0.0.0.0:15306").await {
+            tracing::error!("MySQL 프록시 오류: {}", e);
+        }
+    });
+
     info!("PostgreSQL 프록시 → :15432");
+    info!("MySQL     프록시 → :15306");
     info!("모든 프록시 대기 중...");
 
-    pg_handle.await?;
+    let _ = tokio::join!(pg, my);
     Ok(())
 }
