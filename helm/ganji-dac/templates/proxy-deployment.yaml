@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ganji-dac.fullname" . }}-proxy
+  labels:
+    {{- include "ganji-dac.labels" . | nindent 4 }}
+    app.kubernetes.io/component: proxy
+spec:
+  replicas: {{ .Values.proxy.replicas }}
+  selector:
+    matchLabels:
+      {{- include "ganji-dac.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: proxy
+  template:
+    metadata:
+      labels:
+        {{- include "ganji-dac.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: proxy
+    spec:
+      containers:
+        - name: proxy
+          image: {{ include "ganji-dac.image" (dict "global" .Values.global "image" .Values.proxy.image) }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: pg-proxy
+              containerPort: 15432
+              protocol: TCP
+            - name: mysql-proxy
+              containerPort: 15306
+              protocol: TCP
+            - name: mongo-proxy
+              containerPort: 15017
+              protocol: TCP
+            - name: redis-proxy
+              containerPort: 16379
+              protocol: TCP
+            - name: mssql-proxy
+              containerPort: 11433
+              protocol: TCP
+          env:
+            - name: PG_UPSTREAM
+              value: {{ .Values.proxy.upstream.postgres | default "postgres:5432" | quote }}
+            - name: MYSQL_UPSTREAM
+              value: {{ .Values.proxy.upstream.mysql | default "mysql:3306" | quote }}
+            - name: MONGO_UPSTREAM
+              value: {{ .Values.proxy.upstream.mongodb | default "mongo:27017" | quote }}
+            - name: REDIS_UPSTREAM
+              value: {{ .Values.proxy.upstream.redis | default "redis:6379" | quote }}
+            - name: MSSQL_UPSTREAM
+              value: {{ .Values.proxy.upstream.mssql | default "mssql:1433" | quote }}
+            - name: POLICY_FILE
+              value: /app/policies.json
+            - name: AUDIT_LOG_PATH
+              value: {{ .Values.audit.file.path | quote }}
+            - name: AWS_REGION
+              value: {{ .Values.proxy.aws.region | quote }}
+            {{- if .Values.proxy.aws.secretId }}
+            - name: AWS_SECRET_ID
+              value: {{ .Values.proxy.aws.secretId | quote }}
+            {{- end }}
+            {{- if .Values.audit.cloudwatch.enabled }}
+            - name: CLOUDWATCH_LOG_GROUP
+              value: {{ .Values.audit.cloudwatch.logGroup | quote }}
+            - name: CLOUDWATCH_LOG_STREAM
+              value: {{ .Values.audit.cloudwatch.logStream | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.proxy.resources | nindent 12 }}
+          volumeMounts:
+            - name: policies
+              mountPath: /app/policies.json
+              subPath: policies.json
+              readOnly: true
+            - name: audit-logs
+              mountPath: /var/log/ganji-dac
+          livenessProbe:
+            tcpSocket:
+              port: 15432
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: 15432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: policies
+          configMap:
+            name: {{ include "ganji-dac.fullname" . }}-policies
+        - name: audit-logs
+          emptyDir: {}

@@ -1,0 +1,14 @@
+apiVersion: v2
+name: ganji-dac
+description: 대한민국 규제 준수 AWS 최적화 DB 접근제어 솔루션
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - security
+  - database
+  - access-control
+  - korea
+  - isms-p
+maintainers:
+  - name: ganji-dac

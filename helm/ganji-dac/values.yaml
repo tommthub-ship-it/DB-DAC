@@ -1,0 +1,69 @@
+global:
+  image:
+    registry: ""
+    pullPolicy: IfNotPresent
+
+proxy:
+  image:
+    repository: ganji-dac-proxy
+    tag: latest
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  upstream:
+    postgres: ""   # RDS 엔드포인트
+    mysql: ""
+    mongodb: ""
+    redis: ""
+    mssql: ""
+  aws:
+    region: ap-northeast-2
+    secretId: ""   # Secrets Manager ID
+
+api:
+  image:
+    repository: ganji-dac-api
+    tag: latest
+  replicas: 1
+  service:
+    port: 8080
+  secret:
+    apiKey: "change-me-in-production"
+
+console:
+  image:
+    repository: ganji-dac-console
+    tag: latest
+  replicas: 1
+  service:
+    port: 80
+
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: 7-alpine
+  password: "ganji-dac-secret"
+
+audit:
+  cloudwatch:
+    enabled: false
+    logGroup: "/ganji-dac/audit"
+    logStream: "proxy"
+  file:
+    enabled: true
+    path: "/var/log/ganji-dac/audit.jsonl"
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  console:
+    host: ganji-dac.example.com
+  api:
+    host: api.ganji-dac.example.com

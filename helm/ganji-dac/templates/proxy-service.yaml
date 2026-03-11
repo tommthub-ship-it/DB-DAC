@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ganji-dac.fullname" . }}-proxy
+  labels:
+    {{- include "ganji-dac.labels" . | nindent 4 }}
+    app.kubernetes.io/component: proxy
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "ganji-dac.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: proxy
+  ports:
+    - name: pg-proxy
+      port: 15432
+      targetPort: pg-proxy
+      protocol: TCP
+    - name: mysql-proxy
+      port: 15306
+      targetPort: mysql-proxy
+      protocol: TCP
+    - name: mongo-proxy
+      port: 15017
+      targetPort: mongo-proxy
+      protocol: TCP
+    - name: redis-proxy
+      port: 16379
+      targetPort: redis-proxy
+      protocol: TCP
+    - name: mssql-proxy
+      port: 11433
+      targetPort: mssql-proxy
+      protocol: TCP
