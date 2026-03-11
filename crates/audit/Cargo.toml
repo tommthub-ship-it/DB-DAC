@@ -1,0 +1,21 @@
+[package]
+name = "audit"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "audit"
+path = "src/lib.rs"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
+aws-config = { workspace = true }
+aws-sdk-cloudwatchlogs = { workspace = true }
