@@ -1,5 +1,9 @@
+mod mongodb;
+mod mssql;
 mod mysql;
+mod policy_loader;
 mod postgres;
+mod redis;
 
 use std::sync::Arc;
 
@@ -28,6 +32,14 @@ async fn main() -> Result<()> {
     // 정책 엔진 초기화
     let policy = Arc::new(PolicyEngine::new());
     policy.load_default_rules();
+
+    // 정책 파일 로드 (POLICY_FILE 환경변수)
+    match policy_loader::load_from_file(&policy) {
+        Ok(n) if n > 0 => info!("정책 파일에서 {} 규칙 추가 로드", n),
+        Ok(_) => {}
+        Err(e) => warn!("정책 파일 로드 오류: {}", e),
+    }
+
     info!("정책 엔진 초기화 완료 ({} 규칙)", policy.list_rules().len());
 
     // 감사 로거 초기화
@@ -73,10 +85,34 @@ async fn main() -> Result<()> {
         }
     });
 
+    let mongo_ctx = ctx.clone();
+    let mongo = tokio::spawn(async move {
+        if let Err(e) = mongodb::run_proxy(mongo_ctx, "0.0.0.0:15017").await {
+            tracing::error!("MongoDB 프록시 오류: {}", e);
+        }
+    });
+
+    let redis_ctx = ctx.clone();
+    let redis = tokio::spawn(async move {
+        if let Err(e) = redis::run_proxy(redis_ctx, "0.0.0.0:16379").await {
+            tracing::error!("Redis 프록시 오류: {}", e);
+        }
+    });
+
+    let mssql_ctx = ctx.clone();
+    let mssql = tokio::spawn(async move {
+        if let Err(e) = mssql::run_proxy(mssql_ctx, "0.0.0.0:11433").await {
+            tracing::error!("MSSQL 프록시 오류: {}", e);
+        }
+    });
+
     info!("PostgreSQL 프록시 → :15432");
     info!("MySQL     프록시 → :15306");
+    info!("MongoDB   프록시 → :15017");
+    info!("Redis     프록시 → :16379");
+    info!("MSSQL     프록시 → :11433");
     info!("모든 프록시 대기 중...");
 
-    let _ = tokio::join!(pg, my);
+    let _ = tokio::join!(pg, my, mongo, redis, mssql);
     Ok(())
 }

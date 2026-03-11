@@ -27,6 +27,10 @@ services:
       MONGO_UPSTREAM: ${MONGO_UPSTREAM:-mongo:27017}
       # Redis 업스트림
       REDIS_UPSTREAM: ${REDIS_UPSTREAM:-redis:6379}
+      # MSSQL 업스트림
+      MSSQL_UPSTREAM: ${MSSQL_UPSTREAM:-mssql:1433}
+      # 정책 파일 경로 (컨테이너 내부 경로)
+      POLICY_FILE: ${POLICY_FILE:-/app/policies.json}
       # 감사 로그 파일 경로
       AUDIT_LOG_PATH: /var/log/ganji-dac/audit.jsonl
       # AWS 설정 (CloudWatch 연동 시)

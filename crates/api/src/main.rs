@@ -27,6 +27,7 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .merge(routes::rules::router())
+        .merge(routes::policy_file::router())
         .merge(routes::audit::router())
         .merge(routes::secrets::router())
         .merge(routes::health::router())
