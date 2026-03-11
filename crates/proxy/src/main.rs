@@ -6,12 +6,14 @@ use std::sync::Arc;
 use anyhow::Result;
 use audit::{logger::StdoutSink, AuditLogger};
 use policy::PolicyEngine;
-use tracing::info;
+use secrets::SecretsClient;
+use tracing::{info, warn};
 use tracing_subscriber::{fmt, EnvFilter};
 
 pub struct ProxyContext {
     pub policy: Arc<PolicyEngine>,
     pub audit: Arc<AuditLogger>,
+    pub secrets: Option<Arc<SecretsClient>>,
 }
 
 #[tokio::main]
@@ -28,21 +30,35 @@ async fn main() -> Result<()> {
     policy.load_default_rules();
     info!("정책 엔진 초기화 완료 ({} 규칙)", policy.list_rules().len());
 
-    // 감사 로거 초기화 (파일 싱크 추가)
+    // 감사 로거 초기화
     let audit_path = std::env::var("AUDIT_LOG_PATH")
         .unwrap_or_else(|_| "/var/log/ganji-dac/audit.jsonl".to_string());
-
     let audit = Arc::new(
         AuditLogger::new()
             .add_sink(StdoutSink)
             .add_sink(audit::logger::FileSink::new(&audit_path)),
     );
 
-    let ctx = Arc::new(ProxyContext { policy, audit });
+    // AWS Secrets Manager 초기화 (선택적)
+    let secrets = match SecretsClient::from_env().await {
+        Ok(client) => {
+            info!("AWS Secrets Manager 연결 완료");
+            Some(Arc::new(client))
+        }
+        Err(e) => {
+            warn!("Secrets Manager 초기화 실패 (환경변수 방식으로 폴백): {}", e);
+            None
+        }
+    };
+
+    let ctx = Arc::new(ProxyContext {
+        policy,
+        audit,
+        secrets,
+    });
 
     // ── 프록시 리스너 동시 실행 ─────────────────────────
 
-    // PostgreSQL
     let pg_ctx = ctx.clone();
     let pg = tokio::spawn(async move {
         if let Err(e) = postgres::run_proxy(pg_ctx, "0.0.0.0:15432").await {
@@ -50,7 +66,6 @@ async fn main() -> Result<()> {
         }
     });
 
-    // MySQL
     let my_ctx = ctx.clone();
     let my = tokio::spawn(async move {
         if let Err(e) = mysql::run_proxy(my_ctx, "0.0.0.0:15306").await {

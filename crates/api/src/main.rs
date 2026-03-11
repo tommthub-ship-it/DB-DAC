@@ -6,10 +6,10 @@ mod state;
 use std::sync::Arc;
 
 use anyhow::Result;
-use axum::{middleware, Router};
+use axum::{Router, middleware};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::info;
-use tracing_subscriber::{fmt, EnvFilter};
+use tracing_subscriber::{EnvFilter, fmt};
 
 use crate::state::AppState;
 
@@ -22,12 +22,13 @@ async fn main() -> Result<()> {
 
     info!("🔐 간지-DAC API 시작");
 
-    let state = Arc::new(AppState::new());
+    let state = Arc::new(AppState::new().await);
     state.policy.load_default_rules();
 
     let app = Router::new()
         .merge(routes::rules::router())
         .merge(routes::audit::router())
+        .merge(routes::secrets::router())
         .merge(routes::health::router())
         .layer(middleware::from_fn_with_state(
             state.clone(),

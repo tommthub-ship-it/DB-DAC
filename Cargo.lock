@@ -36,6 +36,7 @@ dependencies = [
  "axum",
  "chrono",
  "policy",
+ "secrets",
  "serde",
  "serde_json",
  "thiserror",
@@ -187,6 +188,30 @@ dependencies = [
  "aws-runtime",
  "aws-smithy-async",
  "aws-smithy-eventstream",
+ "aws-smithy-http",
+ "aws-smithy-json",
+ "aws-smithy-observability",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "fastrand",
+ "http 0.2.12",
+ "http 1.4.0",
+ "regex-lite",
+ "tracing",
+]
+
+[[package]]
+name = "aws-sdk-secretsmanager"
+version = "1.102.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c9e9668477f18fd7ef9c606a3be827051f0c14030ccb5e6d3958f66c7956cd20"
+dependencies = [
+ "aws-credential-types",
+ "aws-runtime",
+ "aws-smithy-async",
  "aws-smithy-http",
  "aws-smithy-json",
  "aws-smithy-observability",
@@ -1537,6 +1562,7 @@ dependencies = [
  "chrono",
  "dashmap",
  "policy",
+ "secrets",
  "serde",
  "serde_json",
  "thiserror",
@@ -1739,6 +1765,23 @@ checksum = "da046153aa2352493d6cb7da4b6e5c0c057d8a1d0a9aa8560baffdd945acd414"
 dependencies = [
  "ring",
  "untrusted",
+]
+
+[[package]]
+name = "secrets"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-secretsmanager",
+ "chrono",
+ "dashmap",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
