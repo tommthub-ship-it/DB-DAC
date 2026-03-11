@@ -1,0 +1,71 @@
+{
+  "version": "1",
+  "description": "간지-DAC 기본 정책 (개인정보보호법·ISMS-P 기준)",
+  "rules": [
+    {
+      "id": "block-dangerous-queries",
+      "name": "위험 쿼리 전면 차단",
+      "description": "DROP, TRUNCATE, 조건 없는 DELETE/UPDATE 차단 (개인정보보호법 §29)",
+      "priority": 1,
+      "action": "deny",
+      "enabled": true,
+      "conditions": [
+        { "type": "block_dangerous_query" }
+      ]
+    },
+    {
+      "id": "block-offhours-weekend",
+      "name": "주말 전체 차단",
+      "description": "토·일요일 DB 접근 차단 (ISMS-P 접근통제)",
+      "priority": 5,
+      "action": "deny",
+      "enabled": true,
+      "conditions": [
+        {
+          "type": "time_range",
+          "start_hour": 0,
+          "end_hour": 24,
+          "days": ["sat", "sun"]
+        }
+      ]
+    },
+    {
+      "id": "alert-offhours-weekday",
+      "name": "평일 업무시간 외 접근 경고",
+      "description": "평일 18시~09시 접근 시 경고 발생 (ISMS-P 이상행위 탐지)",
+      "priority": 10,
+      "action": "alert",
+      "enabled": true,
+      "conditions": [
+        {
+          "type": "time_range",
+          "start_hour": 18,
+          "end_hour": 9,
+          "days": ["mon", "tue", "wed", "thu", "fri"]
+        }
+      ]
+    },
+    {
+      "id": "allow-internal-network",
+      "name": "내부 네트워크 허용",
+      "description": "VPC 내부 IP 대역 허용",
+      "priority": 50,
+      "action": "allow",
+      "enabled": true,
+      "conditions": [
+        { "type": "ip_range", "cidr": "10.0.0.0/8" }
+      ]
+    },
+    {
+      "id": "allow-vpn",
+      "name": "VPN 대역 허용",
+      "description": "사내 VPN 주소 허용",
+      "priority": 51,
+      "action": "allow",
+      "enabled": true,
+      "conditions": [
+        { "type": "ip_range", "cidr": "172.16.0.0/12" }
+      ]
+    }
+  ]
+}
