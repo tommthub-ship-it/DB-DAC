@@ -94,6 +94,27 @@ services:
       retries: 3
 
   # ──────────────────────────────────────────────────────────
+  # 관리 콘솔 (웹 UI)
+  # ──────────────────────────────────────────────────────────
+  console:
+    build:
+      context: .
+      dockerfile: Dockerfile.console
+    container_name: ganji-console
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - ganji-internal
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ──────────────────────────────────────────────────────────
   # 감사 로그 뷰어 (개발/운영 확인용)
   # ──────────────────────────────────────────────────────────
   log-viewer:

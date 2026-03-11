@@ -21,7 +21,9 @@ dev:
 	@echo ""
 	@echo "✅ 간지-DAC 개발 모드 실행 중"
 	@echo "  PostgreSQL 프록시 → localhost:15432"
+	@echo "  MySQL     프록시  → localhost:15306"
 	@echo "  Admin API         → http://localhost:8080"
+	@echo "  관리 콘솔          → http://localhost:3000"
 	@echo "  로그 뷰어          → http://localhost:9999"
 
 down:
