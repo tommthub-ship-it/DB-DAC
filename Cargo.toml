@@ -3,7 +3,9 @@ members = [
     "crates/proxy",
     "crates/policy",
     "crates/audit",
-    "crates/api", "crates/secrets",
+    "crates/api",
+    "crates/secrets",
+    "crates/cli",
 ]
 resolver = "2"
 

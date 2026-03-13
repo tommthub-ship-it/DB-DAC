@@ -1,0 +1,22 @@
+[package]
+name = "ganji-dac-cli"
+version = "0.1.0"
+edition = "2021"
+description = "간지-DAC Admin CLI"
+
+[[bin]]
+name = "dac"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+clap = { version = "4", features = ["derive", "env", "color"] }
+tabled = { version = "0.15", features = ["ansi"] }
+colored = "2"
+tokio-util = { workspace = true }

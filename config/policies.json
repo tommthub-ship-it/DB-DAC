@@ -10,7 +10,9 @@
       "action": "deny",
       "enabled": true,
       "conditions": [
-        { "type": "block_dangerous_query" }
+        {
+          "type": "block_dangerous_query"
+        }
       ]
     },
     {
@@ -25,7 +27,10 @@
           "type": "time_range",
           "start_hour": 0,
           "end_hour": 24,
-          "days": ["sat", "sun"]
+          "days": [
+            "sat",
+            "sun"
+          ]
         }
       ]
     },
@@ -41,7 +46,13 @@
           "type": "time_range",
           "start_hour": 18,
           "end_hour": 9,
-          "days": ["mon", "tue", "wed", "thu", "fri"]
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ]
         }
       ]
     },
@@ -53,7 +64,10 @@
       "action": "allow",
       "enabled": true,
       "conditions": [
-        { "type": "ip_range", "cidr": "10.0.0.0/8" }
+        {
+          "type": "ip_range",
+          "cidr": "10.0.0.0/8"
+        }
       ]
     },
     {
@@ -64,7 +78,36 @@
       "action": "allow",
       "enabled": true,
       "conditions": [
-        { "type": "ip_range", "cidr": "172.16.0.0/12" }
+        {
+          "type": "ip_range",
+          "cidr": "172.16.0.0/12"
+        }
+      ]
+    },
+    {
+      "id": "allow-docker-desktop",
+      "name": "Docker Desktop 테스트 허용",
+      "priority": 49,
+      "action": "allow",
+      "enabled": true,
+      "conditions": [
+        {
+          "type": "ip_range",
+          "cidr": "192.168.65.0/24"
+        }
+      ]
+    },
+    {
+      "id": "allow-test-host",
+      "name": "테스트 호스트 허용 (Docker NAT)",
+      "priority": 48,
+      "action": "allow",
+      "enabled": true,
+      "conditions": [
+        {
+          "type": "ip_range",
+          "cidr": "146.190.3.114/32"
+        }
       ]
     }
   ]
