@@ -6,6 +6,7 @@ import type {
   SimulateResponse,
   SecretInfo,
   RotationStatus,
+  AuditEvent,
 } from '../types';
 
 const getConfig = () => ({
@@ -77,3 +78,25 @@ export const refreshSecret = (id: string) =>
   request<SecretInfo>(`/api/secrets/${id}/refresh`, { method: 'POST' });
 export const getRotationStatus = (id: string) =>
   request<RotationStatus>(`/api/secrets/${id}/rotation`);
+
+// Audit Logs
+export const getAuditLogs = (params?: {
+  limit?: number;
+  offset?: number;
+  event_type?: string;
+  db_user?: string;
+  client_ip?: string;
+  allowed?: boolean;
+}): Promise<{ total: number; logs: AuditEvent[]; has_more: boolean }> => {
+  const qs = new URLSearchParams();
+  if (params?.limit !== undefined) qs.set('limit', String(params.limit));
+  if (params?.offset !== undefined) qs.set('offset', String(params.offset));
+  if (params?.event_type) qs.set('event_type', params.event_type);
+  if (params?.db_user) qs.set('db_user', params.db_user);
+  if (params?.client_ip) qs.set('client_ip', params.client_ip);
+  if (params?.allowed !== undefined) qs.set('allowed', String(params.allowed));
+  const query = qs.toString();
+  return request<{ total: number; logs: AuditEvent[]; has_more: boolean }>(
+    `/api/audit/logs${query ? `?${query}` : ''}`
+  );
+};

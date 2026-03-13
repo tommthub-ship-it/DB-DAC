@@ -69,3 +69,18 @@ export interface ApiConfig {
   url: string;
   apiKey: string;
 }
+
+export interface AuditEvent {
+  id: string;
+  timestamp: string;
+  event_type: 'connection_attempt' | 'connection_allowed' | 'connection_denied' | 'query_executed' | 'query_blocked' | 'query_alert' | 'policy_changed';
+  client_ip: string;
+  db_user: string;
+  db_type: string;
+  target_db: string;
+  query?: string;
+  query_masked: boolean;
+  allowed: boolean;
+  reason: string;
+  matched_rule?: string;
+}
